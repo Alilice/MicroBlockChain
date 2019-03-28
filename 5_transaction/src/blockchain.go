@@ -6,7 +6,7 @@ import (
 )
 
 var (
-	dbfile       = "./4_CLI/blockchain.db"
+	dbfile       = "./5_transation/blockchain.db"
 	blocksBucket = []byte("BlocksBucket")
 	lastBlockKey = []byte("l")
 )
@@ -23,7 +23,7 @@ type BlockChainIterator struct {
 }
 
 //AddBlock 向区块链上增加区块
-func (bc *BlockChain) AddBlock(data string) (err error) {
+func (bc *BlockChain) AddBlock(transactions []*Transaction) (err error) {
 
 	//拿到最新的区块链的hash
 	var lastBlockHash []byte
@@ -38,7 +38,7 @@ func (bc *BlockChain) AddBlock(data string) (err error) {
 	}
 
 	//组装区块
-	newBlock := NewBlock(lastBlockHash, data)
+	newBlock := NewBlock(lastBlockHash, transactions)
 
 	//更新数据库
 	err = bc.db.Update(func(tx *bolt.Tx) error {
@@ -63,16 +63,29 @@ func (bc *BlockChain) AddBlock(data string) (err error) {
 	return
 }
 
-//NewGenesisBlockChain 创建创世链
-func NewGenesisBlock() (b *Block) {
+//FindSpendableOutputs 找到可用于花费的coin
+func (bc *BlockChain)FindSpendableOutputs(address string, amount int64)(acc int64,validOutputs map[string][]int64) {
 
-	b = NewBlock(nil, "Genesis Block!")
+	unspentTXs := bc.FindUnspentTransactions(address)
+	return
+}
+
+//FindUnspentTransactions 找出所有未花费的coin
+func (bc *BlockChain)FindUnspentTransactions(address string)(txs []*Transaction) {
+
+	return
+}
+
+//NewGenesisBlockChain 创建创世链
+func NewGenesisBlock(coinbase *Transaction) (b *Block) {
+
+	b = NewBlock(nil, []*Transaction{coinbase})
 
 	return
 }
 
 //NewBlockChain 初始化BlockChain
-func NewBlockChain() (bc *BlockChain, err error) {
+func CreateBlockchain() (bc *BlockChain, err error) {
 
 	////检查文件是否存在，不存在创建一个
 	//err=CreateFileIfNotExist(dbfile)
@@ -99,7 +112,9 @@ func NewBlockChain() (bc *BlockChain, err error) {
 			}
 
 			//创建创世块并插入数据库
-			genesis := NewGenesisBlock()
+			//todo
+			cbtx := NewCoinBaseTX("", "")
+			genesis := NewGenesisBlock(cbtx)
 			errs := make([]error, 2)
 			errs[0] = bucket.Put(genesis.Hash, Serialize(genesis))
 			errs[1] = bucket.Put(lastBlockKey, genesis.Hash)
@@ -148,3 +163,4 @@ func (bci *BlockChainIterator) Next() (b *Block) {
 	bci.currentHash = b.PrevBlockHash
 	return
 }
+

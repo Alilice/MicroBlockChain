@@ -2,13 +2,15 @@ package main
 
 import (
 	"time"
+	"crypto/sha256"
+	"bytes"
 )
 
 type Block struct {
 	Timestamp     int64
 	PrevBlockHash []byte
 	Hash          []byte
-	Data          []byte
+	Transactions   []*Transaction
 	Nonce         int64
 }
 
@@ -23,19 +25,31 @@ type Block struct {
 //}
 
 //NewBlock 创建新的Block区块
-func NewBlock(prevBlockHash []byte, data string) (block *Block) {
+func NewBlock(prevBlockHash []byte, transactions []*Transaction) (block *Block) {
 
-	timestamp := time.Now().Unix()
 	block = &Block{
-		Timestamp:     timestamp,
+		Timestamp:     time.Now().Unix(),
 		PrevBlockHash: prevBlockHash,
-		Data:          []byte(data),
+		Transactions:          transactions,
 	}
 	//block.setHash()
 	pow := NewProofOfWork(block)
 	nonce, hash := pow.Run()
 	block.Nonce = nonce
 	block.Hash = hash[:]
+
+	return
+}
+
+//HashTransactions 计算区块中所以交易的Hash
+func (b *Block)HashTransactions() (txsHash []byte) {
+
+	txHashes:=make([][]byte,0)
+
+	for _,tx:=range b.Transactions{
+		txHashes = append(txHashes,tx.TXHash)
+	}
+	txsHash=sha256.Sum256(bytes.Join(txHashes,[]byte{}))[:]
 
 	return
 }

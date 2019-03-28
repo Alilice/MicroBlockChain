@@ -5,11 +5,11 @@ import (
 )
 
 type Block struct {
-	Timestamp int64
+	Timestamp     int64
 	PrevBlockHash []byte
-	Hash []byte
-	Data []byte
-	Nonce int64
+	Hash          []byte
+	Data          []byte
+	Nonce         int64
 }
 
 ////setHash 计算区块链的Hash，这里只计算区块链的Timestamp+prevBlockHash+Data的hash
@@ -23,22 +23,19 @@ type Block struct {
 //}
 
 //NewBlock 创建新的Block区块
-func NewBlock(prevBlockHash []byte ,data string ) (block *Block) {
+func NewBlock(prevBlockHash []byte, data string) (block *Block) {
 
-	timestamp:=time.Now().Unix()
-	block=&Block{
-		Timestamp:timestamp,
-		PrevBlockHash:prevBlockHash,
-		Data:[]byte(data),
+	timestamp := time.Now().Unix()
+	block = &Block{
+		Timestamp:     timestamp,
+		PrevBlockHash: prevBlockHash,
+		Data:          []byte(data),
 	}
 	//block.setHash()
-	pow:=NewProofOfWork(block)
-	nonce,hash:=pow.Run()
-	block.Nonce=nonce
-	block.Hash=hash[:]
+	pow := NewProofOfWork(block)
+	nonce, hash := pow.Run()
+	block.Nonce = nonce
+	block.Hash = hash[:]
 
 	return
 }
-
-
-

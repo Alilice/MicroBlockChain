@@ -1,2 +1,4 @@
 .idea
 Test/
+*.db
+*.DS_Store
